@@ -1,0 +1,193 @@
+{% extends 'admin/master.html' %}
+{% block main_content %}
+    <div class="col-12">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert {% if get_flashed_messages(category_filter=["error"]) %} alert-danger
+                     {% elif get_flashed_messages(category_filter=["success"]) %} alert-success
+                     {% endif %} alert-dismissible fade show" role="alert">
+                    {% for message in messages %}
+                        <h5 class="text-black-50">{{ message }}</h5>
+                    {% endfor %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <div class="col-12">
+        <div class="bg-light rounded h-100 p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-4"><i class="fas fa-user-tie me-2"></i> &nbsp;Customer list</h6>
+                <a href="#" type="button" class="btn btn-outline-success" data-bs-toggle="modal"
+                   data-bs-target="#insertModal">Add new Customer
+                    &nbsp;<i class="far fa-plus-square me-2"></i></a>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Profile</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in rows %}
+                        <tr class="justify-content-center">
+                            <th scope="row">{{ loop.index }}</th>
+                            <td>
+                                <img src="/static/image/customer/{{ row['image'] }}" width="50px" height="50px" alt="">
+                            </td>
+                            <td>{{ row['name'] }}</td>
+                            <td><span class="circle {{ row['status'] }}"></span>{{ row['status'] }}</td>
+                            <td>
+                                <a href="#" type="button" class="btn btn-outline-secondary" data-bs-toggle="modal"
+                                   onclick="getOldData('{{ row['id'] }}', '{{ row['name'] }}','{{ row['status'] }}','{{ row['image'] }}')"
+                                   data-bs-target="#updateModal">Edit
+                                    &nbsp;<i class="far fa-edit"></i></a>
+                                <a href="#"
+                                   class="btn btn-outline-danger delete-button" data-bs-toggle="modal"
+                                   data-bs-target="#deleteConfirmationModal"
+                                   onclick="getRecordId('{{ row['id'] }}')">Delete
+                                    <i class="far fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {#Inser Modal#}
+    <div class="modal fade" id="insertModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+         aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel"><i class="fas fa-user-tie me-2"></i> &nbsp;Insert
+                        Customer</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{{ url_for('insertData', table_name='customer') }}"
+                      enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="customer_image" class="form-label">Profile Image <span
+                                    style="color: red">*</span></label>
+                            <input type="file" class="form-control" name="customer_image" id="customer_image">
+                        </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name <span style="color: red">*</span></label>
+                            <input type="text" class="form-control" name="name" id="name" aria-describedby="nameHelp"
+                                   required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status <span style="color: red">*</span></label>
+                            <select class="form-select" name="status" id="status">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-outline-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {#End Inser Modal#}
+    {#Update Modal#}
+    <div class="modal fade" id="updateModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+         aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel"><i class="fas fa-user-tie me-2"></i> &nbsp;Update
+                        Customer</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{{ url_for('updateRecord', table_name='customer') }}" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <img id="oldProductImage" alt="ProductImage" height="100" width="100">
+                        </div>
+                        <div class="mb-3">
+                            <input type="hidden" name="edit_customer_id" id="edit_customer_id">
+                            <label for="edit_profileImage" class="form-label">Profile Image <span
+                                    style="color: red">*</span></label>
+                            <input type="file" class="form-control" name="edit_profileImage" id="edit_profileImage"
+                                   accept="image/*">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_name" class="form-label">Name <span style="color: red">*</span></label>
+                            <input type="text" class="form-control" name="edit_name" id="edit_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_status" class="form-label">Status <span style="color: red">*</span></label>
+                            <select class="form-select" name="edit_status" id="edit_status">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-outline-primary">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {#End Update Modal#}
+    {# DELETE MODAL#}
+    <!-- Modal -->
+    <div class="modal fade" id="deleteConfirmationModal" data-bs-backdrop="static" data-bs-keyboard="false"
+         tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="deleteConfirmationModalLabel"><i class="fas fa-user-tie"></i>
+                        &nbsp;Remove customer</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ url_for('removeRecord', table_name='customer') }}" method="POST">
+                    <div class="modal-body">
+                        <input name="recordID" id="recordID" type="hidden">
+                        <h6 class="text-danger">Are you sure you want to remove this Customer?</h6>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-outline-primary" id="confirmDelete">Yes</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">No</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {#End DELETE MODAL#}
+    <script>
+        function getRecordId(id) {
+            const recordID = document.getElementById('recordID')
+            recordID.value = id
+        }
+
+        function getOldData(id, name, status, image) {
+            document.getElementById('edit_customer_id').value = id;
+            document.getElementById('edit_name').value = name;
+            document.getElementById('oldProductImage').src = '/static/image/customer/' + image;
+            const statusSelect = document.getElementById('edit_status');
+            for (let i = 0; i < statusSelect.options.length; i++) {
+                if (statusSelect.options[i].value === status) {
+                    statusSelect.options[i].selected = true;
+                    break;
+                }
+            }
+        }
+    </script>
+{% endblock %}

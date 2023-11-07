@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/index.css">
+</head>
+<body>
+<div class="container">
+    {% for item in data %}
+        <div class="card">
+         <img src="https://picsum.photos/id/{{ loop.index + 20 }}/200/200" alt="Person" class="card__image">
+            <p class="card__name">{{ item.name }}</p>
+            <div class="grid-container">
+                <div class="grid-child-posts">
+                    <del>
+                        {{ "${:.2f}".format(item.price) }}
+                    </del>
+                </div>
+                <div class="grid-child-followers">
+                   {{ "Instock: " + item.qty|string }}
+                </div>
+            </div>
+            <ul class="social-icons">
+                <li><a href="#"><i class="fas fa-yin-yang"></i></a></li>
+                <li><a href="#"><i class="fas fa-walking"></i></a></li>
+                <li><a href="#"><i class="fas fa-water"></i></a></li>
+                <li><a href="#"><i class="fas fa-video"></i></a></li>
+            </ul>
+            <button class="btn draw-border">{{ "${:.2f}".format(item.price - (item.price * item.discount / 100)) }}</button>
+            <button class="btn draw-border">Message</button>
+        </div>
+    {% endfor %}
+</div>
+</body>
+</html>
